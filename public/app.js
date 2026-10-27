@@ -369,7 +369,7 @@ async function handleStopAndAnalyze() {
   formData.append("metrics", JSON.stringify(finalMetrics));
 
   try {
-    const res = await fetch("https://emotion-api.3175342140.workers.dev", {
+    const res = await fetch("/api/analyze", {
       method: "POST",
       body: formData
     });
