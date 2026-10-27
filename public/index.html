@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>魂芳志启 · 多模态语音微扰动与焦虑评估系统</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-badge">DSP + LLM MULTIMODAL</span>
+      <h1>魂芳志启 · 语音微扰动与情境焦虑评估系统</h1>
+    </div>
+    <div class="sys-status">
+      <span class="dot" id="sysDot"></span>
+      <span id="sysText">Web Audio 引擎就绪 · 采样率自适应</span>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <!-- 左栏：实时传感与物理声学特征舱 -->
+    <section class="col-left">
+      <div class="panel sensor-panel">
+        <div class="panel-header">
+          <h2>实时声学传感与时频示波器</h2>
+          <span class="timer" id="timerDisplay">00:00.0</span>
+        </div>
+
+        <div class="canvas-container">
+          <canvas id="waveCanvas"></canvas>
+          <div class="canvas-overlay" id="canvasOverlay">
+            点击下方「开始采集」启动麦克风实时时域/频域捕获
+          </div>
+        </div>
+
+        <!-- 老师演示专用：话术对照引导 -->
+        <div class="demo-guide">
+          <div class="guide-title">🎯 演示采样建议话术（支持自然表达或模拟以下状态）：</div>
+          <div class="guide-chips">
+            <span class="chip"><strong>焦虑/卡顿样本：</strong>“你好你好，我叫某某某，我……呃，其实最近项目压力有点大，就是……”</span>
+            <span class="chip"><strong>平稳对照样本：</strong>“大家好，今天由我来为大家演示这套多模态语音情绪评估系统的核心架构。”</span>
+          </div>
+        </div>
+
+        <div class="control-bar">
+          <button id="recordBtn" class="btn-primary">
+            <span class="rec-icon"></span>
+            <span id="recordBtnText">开始语音采集</span>
+          </button>
+          <button id="resetBtn" class="btn-ghost" disabled>重置数据</button>
+        </div>
+
+        <p id="statusText" class="status-bar">建议录制 4–15 秒语音，系统将同步提取端侧 DSP 物理特征与副语言语义。</p>
+      </div>
+
+      <!-- 6维硬核物理指标看板（让评委一眼看到底层并非单纯调API） -->
+      <div class="panel telemetry-panel">
+        <div class="panel-header">
+          <h2>端侧 DSP 物理声学遥测矩阵 (Real-time Extraction)</h2>
+          <span class="tag-tech">Web Audio API</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="metric-card">
+            <span class="m-label">振幅微扰率 (Shimmer Proxy)</span>
+            <span class="m-val" id="mShimmer">-- %</span>
+            <span class="m-desc">反映声带紧绷与微颤度</span>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">静音停顿比 (Pause Ratio)</span>
+            <span class="m-val" id="mPause">-- %</span>
+            <span class="m-desc">反映言语犹豫与思维阻滞</span>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">言语卡顿频次 (Hesitations)</span>
+            <span class="m-val" id="mHesitation">-- 次</span>
+            <span class="m-desc">话语中途异常断续计数</span>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">过零率均值 (ZCR Index)</span>
+            <span class="m-val" id="mZcr">--</span>
+            <span class="m-desc">高频气息音与嗓音干紧度</span>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">能量波动标准差 (RMS Std)</span>
+            <span class="m-val" id="mRmsStd">--</span>
+            <span class="m-desc">音量控制失稳与突发性</span>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">动态语速 (Speech Rate)</span>
+            <span class="m-val" id="mSpeed">-- 字/分</span>
+            <span class="m-desc">单位时间有效语义输出密度</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右栏：多模态诊断看板与干预闭环 -->
+    <section class="col-right">
+      <!-- 核心分值与三维子量表 -->
+      <div class="panel score-panel">
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 120 120">
+            <circle class="gauge-bg" cx="60" cy="60" r="50" />
+            <circle class="gauge-fill" id="gaugeCircle" cx="60" cy="60" r="50" />
+          </svg>
+          <div class="gauge-center">
+            <div class="score-num" id="scoreValue">--</div>
+            <div class="score-unit">焦虑指数</div>
+          </div>
+        </div>
+
+        <div class="score-details">
+          <div class="badge-row">
+            <span class="level-badge" id="levelValue">待采集评估</span>
+            <span class="band-tag" id="bandValue">区间 --</span>
+          </div>
+          <h3 id="summaryText" class="one-line-summary">等待语音样本输入后生成多模态辨证定性结论...</h3>
+
+          <div class="sub-bars">
+            <div class="sub-item">
+              <div class="sub-top"><span>声带紧绷度 (Vocal Tension)</span><span id="subTensionVal">--</span></div>
+              <div class="bar-track"><div class="bar-fill" id="subTensionBar"></div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-top"><span>言语流畅阻滞 (Fluency Block)</span><span id="subFluencyVal">--</span></div>
+              <div class="bar-track"><div class="bar-fill" id="subFluencyBar"></div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-top"><span>节律失稳度 (Rhythm Instability)</span><span id="subRhythmVal">--</span></div>
+              <div class="bar-track"><div class="bar-fill" id="subRhythmBar"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 语音转写与副语言标记 -->
+      <div class="panel transcript-panel">
+        <div class="panel-header">
+          <h2>副语言全息转写文本 (自动高亮重复/吞吐/阻滞词)</h2>
+          <span class="tag-tech">Whisper-1</span>
+        </div>
+        <div id="transcriptBox" class="transcript-box muted">
+          暂无语音转写内容。系统将自动捕获并高亮口语中的叠词、犹豫词与断句停顿。
+        </div>
+      </div>
+
+      <!-- 深度剖析与三维证据链 -->
+      <div class="panel analysis-panel">
+        <h2>声学动力学 × 语义交叉印证剖析</h2>
+        <p id="traitText" class="trait-box muted">等待分析完成后显示状态洞察...</p>
+
+        <div class="two-cols">
+          <div class="list-block">
+            <h3>🔬 多模态判定依据 (Evidence)</h3>
+            <ul id="evidenceList" class="custom-list">
+              <li class="empty-li">待提取声学与副语言证据链</li>
+            </ul>
+          </div>
+          <div class="list-block">
+            <h3>🌿 靶向干预与调节方案 (Intervention)</h3>
+            <ul id="suggestionList" class="custom-list">
+              <li class="empty-li">待生成个性化生理与感官调节建议</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部安全声明与干预联动舱 -->
+      <div class="panel footer-panel">
+        <div class="safety-note">
+          <strong>⚠️ 学术演示与伦理声明：</strong>本系统基于声学物理微扰特征与计算副语言学模型进行情境性情绪状态评估演示，不构成临床医学诊断。
+        </div>
+        <div class="cta-box" id="interventionCard">
+          <div class="cta-info">
+            <span class="cta-title">青囊草本芳香喷剂 · 嗅觉通路靶向舒缓联动</span>
+            <span class="cta-sub" id="ctaDynamicText">当检测到焦虑指数 > 50 时，系统将自动匹配挥发油芳樟醇/乙酸芳樟酯雾化干预方案。</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
